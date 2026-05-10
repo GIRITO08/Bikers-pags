@@ -60,17 +60,26 @@
     </aside>
 
     <section class="feed">
-      <div class="composer">
+      <form class="composer" method="post" action="{% url 'post_create' %}" enctype="multipart/form-data">
+        {% csrf_token %}
         <div class="composer__left">
           {% with photo=request.user.photo_url %}
             <span class="avatar"{% if photo %} style="background-image:url('{{ photo }}')"{% endif %}></span>
           {% endwith %}
         </div>
         <div class="composer__right">
-          <div class="composer__hint">¿Qué quieres compartir? (demo)</div>
-          <div class="composer__sub">Para administrar contenido usa el panel admin.</div>
+          <textarea class="composer__input" name="text" rows="3" placeholder="¿Qué quieres compartir?"></textarea>
+          <div class="composer__actions">
+            <label class="btn btn--ghost btn--sm" for="postImage">
+              <span class="mi material-symbols-rounded" aria-hidden="true">photo_camera</span>Foto
+            </label>
+            <input class="composer__file" id="postImage" type="file" name="image_file" accept="image/*" />
+            <button class="btn btn--primary btn--sm" type="submit">
+              <span class="mi material-symbols-rounded" aria-hidden="true">send</span>Publicar
+            </button>
+          </div>
         </div>
-      </div>
+      </form>
 
       <div class="stories" data-stories data-animate="card">
         <div class="stories__title">Historias</div>
@@ -99,7 +108,7 @@
 
       {% if posts %}
         {% for post in posts %}
-          <article class="post" data-animate="card">
+          <article class="post" data-animate="card" id="post-{{ post.id }}">
             <header class="post__head">
               {% with photo=post.author.photo_url %}
                 <span class="avatar"{% if photo %} style="background-image:url('{{ photo }}')"{% endif %}></span>
@@ -121,9 +130,31 @@
             {% endif %}
             <footer class="post__actions">
               <button class="actionbtn" type="button"><span class="mi material-symbols-rounded" aria-hidden="true">favorite</span>Me gusta</button>
-              <button class="actionbtn" type="button"><span class="mi material-symbols-rounded" aria-hidden="true">chat_bubble</span>Comentar</button>
+              <a class="actionbtn" href="#post-{{ post.id }}"><span class="mi material-symbols-rounded" aria-hidden="true">chat_bubble</span>Comentar</a>
               <button class="actionbtn" type="button"><span class="mi material-symbols-rounded" aria-hidden="true">ios_share</span>Compartir</button>
             </footer>
+            <div class="comments">
+              {% if post.comments.all %}
+                <div class="comments__list">
+                  {% for c in post.comments.all %}
+                    <div class="comment">
+                      {% with photo=c.author.photo_url %}
+                        <span class="avatar avatar--sm"{% if photo %} style="background-image:url('{{ photo }}')"{% endif %}></span>
+                      {% endwith %}
+                      <div class="comment__body">
+                        <div class="comment__author">{{ c.author.get_full_name|default:c.author.username }}</div>
+                        <div class="comment__text">{{ c.text }}</div>
+                      </div>
+                    </div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+              <form class="commentform" method="post" action="{% url 'post_comment' post.id %}">
+                {% csrf_token %}
+                <input class="commentform__input" type="text" name="text" placeholder="Escribe un comentario..." maxlength="800" />
+                <button class="btn btn--ghost btn--sm" type="submit"><span class="mi material-symbols-rounded" aria-hidden="true">send</span></button>
+              </form>
+            </div>
           </article>
         {% endfor %}
       {% else %}

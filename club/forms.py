@@ -8,8 +8,9 @@ import urllib.request
 from django import forms
 from django.conf import settings
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.core.files.storage import default_storage
 
-from .models import EmergencyContact, RiderProfile, User
+from .models import EmergencyContact, Post, PostComment, PostImage, RiderProfile, User
 
 
 class LoginForm(AuthenticationForm):
@@ -412,3 +413,71 @@ class ProfileEditForm(forms.Form):
             raise forms.ValidationError("No se pudo subir la imagen a Storage. Reintenta.")
 
         return f"{supabase_url}/storage/v1/object/public/{bucket}/{obj_name}"
+
+
+class PostCreateForm(forms.Form):
+    text = forms.CharField(
+        required=False,
+        label="",
+        widget=forms.Textarea(attrs={"rows": 3, "placeholder": "Escribe algo..."}),
+    )
+    image_file = forms.FileField(
+        required=False,
+        label="",
+        widget=forms.FileInput(attrs={"accept": "image/*"}),
+    )
+
+    def __init__(self, *args, user: User, request, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = user
+        self.request = request
+
+    def clean(self):
+        cleaned = super().clean()
+        text = (cleaned.get("text") or "").strip()
+        image_file = cleaned.get("image_file")
+        if not text and not image_file:
+            raise forms.ValidationError("Escribe algo o sube una foto.")
+        return cleaned
+
+    def save(self) -> Post:
+        text = (self.cleaned_data.get("text") or "").strip()
+        image_file = self.cleaned_data.get("image_file")
+
+        post = Post.objects.create(author=self.user, text=text)
+
+        if image_file:
+            if getattr(settings, "USE_LOCAL_MEDIA", False):
+                original_name = getattr(image_file, "name", "") or "image"
+                safe_name = "".join(c if c.isalnum() or c in {".", "_", "-"} else "_" for c in original_name)
+                ext = ""
+                if "." in safe_name:
+                    ext = "." + safe_name.rsplit(".", 1)[-1].lower()
+                if ext not in {".jpg", ".jpeg", ".png", ".webp", ".gif"}:
+                    ext = ".jpg"
+                saved_name = default_storage.save(f"posts/{uuid.uuid4().hex}{ext}", image_file)
+                url = self.request.build_absolute_uri(settings.MEDIA_URL + saved_name)
+                PostImage.objects.create(post=post, url=url)
+            else:
+                url = ProfileEditForm._upload_to_supabase_storage(image_file, kind="posts")
+                PostImage.objects.create(post=post, url=url)
+
+        return post
+
+
+class PostCommentForm(forms.Form):
+    text = forms.CharField(
+        required=True,
+        label="",
+        max_length=800,
+        widget=forms.TextInput(attrs={"placeholder": "Escribe un comentario..."}),
+    )
+
+    def __init__(self, *args, user: User, post: Post, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = user
+        self.post = post
+
+    def save(self) -> PostComment:
+        text = (self.cleaned_data.get("text") or "").strip()
+        return PostComment.objects.create(post=self.post, author=self.user, text=text)

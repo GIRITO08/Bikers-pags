@@ -6,15 +6,15 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
+from django.db.models import Prefetch, Q
 from django.http import HttpRequest, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 from django import forms
 
-from .forms import LoginForm, ProfileEditForm, RegisterForm
-from .models import Friendship, Post, RiderProfile, Trip, User
+from .forms import LoginForm, PostCommentForm, PostCreateForm, ProfileEditForm, RegisterForm
+from .models import Friendship, Post, PostComment, RiderProfile, Trip, User
 
 
 def home(request: HttpRequest):
@@ -105,7 +105,13 @@ def _attach_friendship_meta(me: User, users: list[User]) -> None:
 def feed(request: HttpRequest):
     posts = (
         Post.objects.select_related("author", "author__profile")
-        .prefetch_related("images")
+        .prefetch_related(
+            "images",
+            Prefetch(
+                "comments",
+                queryset=PostComment.objects.select_related("author", "author__profile").order_by("created_at"),
+            ),
+        )
         .order_by("-created_at")[:25]
     )
     trips = Trip.objects.prefetch_related("images").order_by("-created_at")[:10]
@@ -167,8 +173,42 @@ def feed(request: HttpRequest):
             "incoming_requests": incoming_requests,
             "fallback_posts": fallback_posts,
             "fallback_trips": fallback_trips,
+            "post_form": PostCreateForm(user=request.user, request=request),
         },
     )
+
+
+@login_required
+@require_POST
+def post_create(request: HttpRequest):
+    form = PostCreateForm(request.POST or None, request.FILES or None, user=request.user, request=request)
+    if form.is_valid():
+        try:
+            form.save()
+        except forms.ValidationError as e:
+            msg = ""
+            if hasattr(e, "messages") and e.messages:
+                msg = e.messages[0]
+            messages.error(request, msg or "No se pudo publicar. Reintenta.")
+        except Exception:
+            messages.error(request, "No se pudo publicar. Reintenta.")
+        else:
+            messages.success(request, "Publicación creada.")
+    else:
+        messages.error(request, "No se pudo publicar. Revisa el texto o la imagen.")
+    return redirect("feed")
+
+
+@login_required
+@require_POST
+def post_comment(request: HttpRequest, post_id: int):
+    post = get_object_or_404(Post, id=post_id)
+    form = PostCommentForm(request.POST or None, user=request.user, post=post)
+    if form.is_valid():
+        form.save()
+    else:
+        messages.error(request, "Comentario inválido.")
+    return redirect("feed")
 
 
 @login_required
