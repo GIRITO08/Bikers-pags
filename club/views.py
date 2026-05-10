@@ -162,9 +162,13 @@ def me_edit(request: HttpRequest):
     form = ProfileEditForm(request.POST or None, request.FILES or None, user=request.user)
     if request.method == "POST":
         if form.is_valid():
-            form.save()
-            messages.success(request, "Perfil actualizado.")
-            return redirect("rider_detail", username=request.user.username)
+            try:
+                form.save()
+            except Exception:
+                messages.error(request, "No se pudo subir la imagen. Revisa tu configuración de Supabase Storage (SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY) o usa URL.")
+            else:
+                messages.success(request, "Perfil actualizado.")
+                return redirect("rider_detail", username=request.user.username)
         messages.error(request, "No se pudo guardar. Revisa los campos marcados.")
     return render(request, "club/profile_edit.html", {"form": form, "profile": profile})
 

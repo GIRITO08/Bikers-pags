@@ -1,6 +1,12 @@
 from __future__ import annotations
 
+import os
+import uuid
+import urllib.error
+import urllib.request
+
 from django import forms
+from django.conf import settings
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 
 from .models import EmergencyContact, RiderProfile, User
@@ -247,12 +253,20 @@ class ProfileEditForm(forms.Form):
         self.profile.cover_photo_url = (self.cleaned_data.get("cover_photo_url") or "").strip()
         profile_file = self.cleaned_data.get("profile_photo_file")
         if profile_file:
-            self.profile.profile_photo_file = profile_file
-            self.profile.profile_photo_url = ""
+            if getattr(settings, "USE_LOCAL_MEDIA", False):
+                self.profile.profile_photo_file = profile_file
+                self.profile.profile_photo_url = ""
+            else:
+                self.profile.profile_photo_url = self._upload_to_supabase_storage(profile_file, kind="avatar")
+                self.profile.profile_photo_file = ""
         cover_file = self.cleaned_data.get("cover_photo_file")
         if cover_file:
-            self.profile.cover_photo_file = cover_file
-            self.profile.cover_photo_url = ""
+            if getattr(settings, "USE_LOCAL_MEDIA", False):
+                self.profile.cover_photo_file = cover_file
+                self.profile.cover_photo_url = ""
+            else:
+                self.profile.cover_photo_url = self._upload_to_supabase_storage(cover_file, kind="cover")
+                self.profile.cover_photo_file = ""
         self.profile.bio = (self.cleaned_data.get("bio") or "").strip()
         self.profile.residence_city = (self.cleaned_data.get("residence_city") or "").strip()
         self.profile.residence_state = (self.cleaned_data.get("residence_state") or "").strip()
@@ -270,3 +284,53 @@ class ProfileEditForm(forms.Form):
                 "updated_at",
             ]
         )
+
+    @staticmethod
+    def _upload_to_supabase_storage(uploaded_file, *, kind: str) -> str:
+        supabase_url = (os.getenv("SUPABASE_URL") or "").strip().rstrip("/")
+        api_key = (os.getenv("SUPABASE_SERVICE_ROLE_KEY") or os.getenv("SUPABASE_ANON_KEY") or "").strip()
+        bucket = (os.getenv("SUPABASE_STORAGE_BUCKET") or "profiles").strip()
+
+        if not supabase_url:
+            raise forms.ValidationError("Falta SUPABASE_URL en Vercel (Environment Variables).")
+        if not api_key:
+            raise forms.ValidationError("Falta SUPABASE_SERVICE_ROLE_KEY (o SUPABASE_ANON_KEY) en Vercel.")
+
+        original_name = getattr(uploaded_file, "name", "") or "image"
+        safe_name = "".join(c if c.isalnum() or c in {".", "_", "-"} else "_" for c in original_name)
+        ext = ""
+        if "." in safe_name:
+            ext = "." + safe_name.rsplit(".", 1)[-1].lower()
+        if ext not in {".jpg", ".jpeg", ".png", ".webp", ".gif"}:
+            ext = ".jpg"
+
+        obj_name = f"{kind}/{uuid.uuid4().hex}{ext}"
+        endpoint = f"{supabase_url}/storage/v1/object/{bucket}/{obj_name}"
+        content_type = getattr(uploaded_file, "content_type", None) or "application/octet-stream"
+
+        try:
+            data = uploaded_file.read()
+        except Exception:
+            data = b""
+
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "apikey": api_key,
+            "Content-Type": content_type,
+            "x-upsert": "true",
+        }
+        req = urllib.request.Request(endpoint, data=data, headers=headers, method="POST")
+        try:
+            with urllib.request.urlopen(req, timeout=25) as resp:
+                if resp.status not in (200, 201):
+                    raise forms.ValidationError("No se pudo subir la imagen a Storage.")
+        except urllib.error.HTTPError as e:
+            try:
+                body = e.read().decode("utf-8", errors="ignore")
+            except Exception:
+                body = ""
+            raise forms.ValidationError(f"No se pudo subir la imagen a Storage ({e.code}). {body}".strip())
+        except Exception:
+            raise forms.ValidationError("No se pudo subir la imagen a Storage. Reintenta.")
+
+        return f"{supabase_url}/storage/v1/object/public/{bucket}/{obj_name}"
