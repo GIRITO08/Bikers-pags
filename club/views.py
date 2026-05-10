@@ -10,6 +10,7 @@ from django.db.models import Q
 from django.http import HttpRequest, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_GET, require_POST
+from django import forms
 
 from .forms import LoginForm, ProfileEditForm, RegisterForm
 from .models import Friendship, Post, RiderProfile, Trip, User
@@ -164,12 +165,20 @@ def me_edit(request: HttpRequest):
         if form.is_valid():
             try:
                 form.save()
+            except forms.ValidationError as e:
+                msg = ""
+                if hasattr(e, "messages") and e.messages:
+                    msg = e.messages[0]
+                messages.error(request, msg or "No se pudo subir la imagen. Revisa tu configuración de Supabase Storage o usa URL.")
+                return render(request, "club/profile_edit.html", {"form": form, "profile": profile})
             except Exception:
-                messages.error(request, "No se pudo subir la imagen. Revisa tu configuración de Supabase Storage (SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY) o usa URL.")
+                messages.error(request, "No se pudo subir la imagen. Revisa tu configuración de Supabase Storage o usa URL.")
+                return render(request, "club/profile_edit.html", {"form": form, "profile": profile})
             else:
                 messages.success(request, "Perfil actualizado.")
                 return redirect("rider_detail", username=request.user.username)
-        messages.error(request, "No se pudo guardar. Revisa los campos marcados.")
+        else:
+            messages.error(request, "No se pudo guardar. Revisa los campos marcados.")
     return render(request, "club/profile_edit.html", {"form": form, "profile": profile})
 
 
