@@ -40,7 +40,74 @@
             const data = await res.json();
             
             if (data.has_new_events) {
-              notiAudio.play().catch(e => console.log('Bloqueado por el navegador (requiere interacción previa):', e));
+              // Intenta reproducir el sonido
+              notiAudio.play().catch(e => console.log('Bloqueado por el navegador:', e));
+              
+              // Actualiza el DOM en segundo plano
+              try {
+                  const feedRes = await fetch(window.location.href);
+                  const html = await feedRes.text();
+                  const parser = new DOMParser();
+                  const doc = parser.parseFromString(html, 'text/html');
+                  
+                  // 1. Actualizar Publicaciones (Feed)
+                  const newPosts = doc.querySelectorAll('.post');
+                  const feedContainer = document.querySelector('.feed');
+                  const storiesEl = document.querySelector('.stories');
+                  
+                  let insertAfterEl = storiesEl;
+                  
+                  newPosts.forEach(newPost => {
+                      if (!newPost.id) return; // Si es un post fallback sin id, ignorar
+                      const currentPost = document.getElementById(newPost.id);
+                      
+                      if (!currentPost) {
+                          // Nuevo post, insertarlo
+                          if (insertAfterEl && insertAfterEl.nextSibling) {
+                              insertAfterEl.parentNode.insertBefore(newPost, insertAfterEl.nextSibling);
+                          } else if (feedContainer) {
+                              feedContainer.appendChild(newPost);
+                          }
+                          insertAfterEl = newPost;
+                      } else {
+                          // Post existente, actualizar sus comentarios
+                          const newCommentsList = newPost.querySelector('.comments__list');
+                          const currentCommentsList = currentPost.querySelector('.comments__list');
+                          const currentCommentsContainer = currentPost.querySelector('.comments');
+                          
+                          if (newCommentsList) {
+                              if (currentCommentsList) {
+                                  currentCommentsList.innerHTML = newCommentsList.innerHTML;
+                              } else if (currentCommentsContainer) {
+                                  const form = currentCommentsContainer.querySelector('.commentform');
+                                  if (form) {
+                                      currentCommentsContainer.insertBefore(newCommentsList, form);
+                                  } else {
+                                      currentCommentsContainer.prepend(newCommentsList);
+                                  }
+                              }
+                          }
+                          insertAfterEl = currentPost;
+                      }
+                  });
+                  
+                  // 2. Actualizar panel de Solicitudes de Amistad
+                  const findPanelByTitle = (dom, title) => {
+                      const titles = dom.querySelectorAll('.panel__title');
+                      for (let t of titles) {
+                          if (t.textContent.trim() === title) return t.parentNode;
+                      }
+                      return null;
+                  };
+                  
+                  const newReqPanel = findPanelByTitle(doc, 'Solicitudes');
+                  const currentReqPanel = findPanelByTitle(document, 'Solicitudes');
+                  if (newReqPanel && currentReqPanel) {
+                      currentReqPanel.innerHTML = newReqPanel.innerHTML;
+                  }
+              } catch (domErr) {
+                  console.error('Error actualizando DOM', domErr);
+              }
             }
             lastNotificationCheck = data.now;
           } catch (e) {
