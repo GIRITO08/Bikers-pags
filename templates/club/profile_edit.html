@@ -102,45 +102,144 @@
           </details>
 
           <div class="panel__title">Info</div>
-          <div class="grid grid--2">
-            <div class="field">
-              <label class="field__label" for="{{ form.first_name.id_for_label }}">Nombre(s)</label>
-              {{ form.first_name }}
-              {% for error in form.first_name.errors %}<div class="field__error">{{ error }}</div>{% endfor %}
+          <div class="accordion" data-accordion>
+            <button class="accordion__head" type="button" data-accordion-toggle>
+              <span>DATOS PERSONALES</span><span class="accordion__chev">▾</span>
+            </button>
+            <div class="accordion__body">
+              <div class="grid grid--2">
+                <div class="field">
+                  <label class="field__label" for="{{ form.first_name.id_for_label }}">Nombre(s)</label>
+                  {{ form.first_name }}
+                  {% for error in form.first_name.errors %}<div class="field__error">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="field">
+                  <label class="field__label" for="{{ form.last_name.id_for_label }}">Apellidos</label>
+                  {{ form.last_name }}
+                  {% for error in form.last_name.errors %}<div class="field__error">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="field">
+                  <label class="field__label" for="{{ form.email.id_for_label }}">Correo</label>
+                  {{ form.email }}
+                  {% for error in form.email.errors %}<div class="field__error">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="field">
+                  <label class="field__label" for="{{ form.document_id.id_for_label }}">Documento</label>
+                  {{ form.document_id }}
+                  {% for error in form.document_id.errors %}<div class="field__error">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="field">
+                  <label class="field__label" for="{{ form.sex.id_for_label }}">Sexo</label>
+                  {{ form.sex }}
+                  {% for error in form.sex.errors %}<div class="field__error">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="field">
+                  <label class="field__label" for="{{ form.age.id_for_label }}">Edad</label>
+                  {{ form.age }}
+                  {% for error in form.age.errors %}<div class="field__error">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="field">
+                  <label class="field__label" for="{{ form.birthdate.id_for_label }}">Fecha de nacimiento</label>
+                  {{ form.birthdate }}
+                  {% for error in form.birthdate.errors %}<div class="field__error">{{ error }}</div>{% endfor %}
+                </div>
+              </div>
+              <div class="field">
+                <label class="field__label" for="{{ form.bio.id_for_label }}">Bio</label>
+                {{ form.bio }}
+                {% for error in form.bio.errors %}<div class="field__error">{{ error }}</div>{% endfor %}
+              </div>
             </div>
-            <div class="field">
-              <label class="field__label" for="{{ form.last_name.id_for_label }}">Apellidos</label>
-              {{ form.last_name }}
-              {% for error in form.last_name.errors %}<div class="field__error">{{ error }}</div>{% endfor %}
-            </div>
-          </div>
-          <div class="field">
-            <label class="field__label" for="{{ form.email.id_for_label }}">Correo</label>
-            {{ form.email }}
-            {% for error in form.email.errors %}<div class="field__error">{{ error }}</div>{% endfor %}
-          </div>
-          <div class="field">
-            <label class="field__label" for="{{ form.bio.id_for_label }}">Bio</label>
-            {{ form.bio }}
-            {% for error in form.bio.errors %}<div class="field__error">{{ error }}</div>{% endfor %}
           </div>
 
-          <div class="grid grid--2">
-            <div class="field">
-              <label class="field__label" for="{{ form.residence_city.id_for_label }}">Ciudad</label>
-              {{ form.residence_city }}
-              {% for error in form.residence_city.errors %}<div class="field__error">{{ error }}</div>{% endfor %}
-            </div>
-            <div class="field">
-              <label class="field__label" for="{{ form.residence_state.id_for_label }}">Estado</label>
-              {{ form.residence_state }}
-              {% for error in form.residence_state.errors %}<div class="field__error">{{ error }}</div>{% endfor %}
+          <div class="accordion" data-accordion>
+            <button class="accordion__head" type="button" data-accordion-toggle>
+              <span>CONTACTO / RESIDENCIA</span><span class="accordion__chev">▾</span>
+            </button>
+            <div class="accordion__body">
+              <div class="grid grid--2">
+                <div class="field">
+                  <label class="field__label" for="{{ form.phone_mobile.id_for_label }}">Teléfono móvil</label>
+                  {{ form.phone_mobile }}
+                  {% for error in form.phone_mobile.errors %}<div class="field__error">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="field">
+                  <label class="field__label" for="{{ form.phone_work.id_for_label }}">Teléfono trabajo</label>
+                  {{ form.phone_work }}
+                  {% for error in form.phone_work.errors %}<div class="field__error">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="field">
+                  <label class="field__label" for="{{ form.residence_address_line1.id_for_label }}">Dirección</label>
+                  {{ form.residence_address_line1 }}
+                  {% for error in form.residence_address_line1.errors %}<div class="field__error">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="field">
+                  <label class="field__label" for="{{ form.residence_address_line2.id_for_label }}">Barrio</label>
+                  {{ form.residence_address_line2 }}
+                  {% for error in form.residence_address_line2.errors %}<div class="field__error">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="field">
+                  <label class="field__label" for="{{ form.residence_city.id_for_label }}">Ciudad</label>
+                  {{ form.residence_city }}
+                  {% for error in form.residence_city.errors %}<div class="field__error">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="field">
+                  <label class="field__label" for="{{ form.residence_state.id_for_label }}">Estado</label>
+                  {{ form.residence_state }}
+                  {% for error in form.residence_state.errors %}<div class="field__error">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="field">
+                  <label class="field__label" for="{{ form.residence_postal.id_for_label }}">Código Postal</label>
+                  {{ form.residence_postal }}
+                  {% for error in form.residence_postal.errors %}<div class="field__error">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="field">
+                  <label class="field__label" for="{{ form.residence_country.id_for_label }}">País</label>
+                  {{ form.residence_country }}
+                  {% for error in form.residence_country.errors %}<div class="field__error">{{ error }}</div>{% endfor %}
+                </div>
+              </div>
             </div>
           </div>
-          <div class="field">
-            <label class="field__label" for="{{ form.occupation.id_for_label }}">Ocupación</label>
-            {{ form.occupation }}
-            {% for error in form.occupation.errors %}<div class="field__error">{{ error }}</div>{% endfor %}
+
+          <div class="accordion" data-accordion>
+            <button class="accordion__head" type="button" data-accordion-toggle>
+              <span>SALUD / MOTO</span><span class="accordion__chev">▾</span>
+            </button>
+            <div class="accordion__body">
+              <div class="grid grid--2">
+                <div class="field">
+                  <label class="field__label" for="{{ form.occupation.id_for_label }}">Ocupación</label>
+                  {{ form.occupation }}
+                  {% for error in form.occupation.errors %}<div class="field__error">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="field">
+                  <label class="field__label" for="{{ form.blood_type.id_for_label }}">Grupo sanguíneo</label>
+                  {{ form.blood_type }}
+                  {% for error in form.blood_type.errors %}<div class="field__error">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="field">
+                  <label class="field__label" for="{{ form.allergic.id_for_label }}">¿Es alérgico?</label>
+                  {{ form.allergic }}
+                  {% for error in form.allergic.errors %}<div class="field__error">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="field">
+                  <label class="field__label" for="{{ form.allergy_details.id_for_label }}">Alergias (detalle)</label>
+                  {{ form.allergy_details }}
+                  {% for error in form.allergy_details.errors %}<div class="field__error">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="field">
+                  <label class="field__label" for="{{ form.moto_model.id_for_label }}">Moto</label>
+                  {{ form.moto_model }}
+                  {% for error in form.moto_model.errors %}<div class="field__error">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="field">
+                  <label class="field__label" for="{{ form.moto_plate.id_for_label }}">Placa</label>
+                  {{ form.moto_plate }}
+                  {% for error in form.moto_plate.errors %}<div class="field__error">{{ error }}</div>{% endfor %}
+                </div>
+              </div>
+            </div>
           </div>
 
           <button class="btn btn--primary btn--wide" type="submit"><span class="mi material-symbols-rounded" aria-hidden="true">save</span>Guardar cambios</button>

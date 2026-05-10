@@ -320,3 +320,36 @@ def api_friend_updates(request: HttpRequest):
             }
         )
     return JsonResponse({"ok": True, "events": events, "now": int(timezone.now().timestamp() * 1000)})
+
+
+@login_required
+@require_GET
+def api_friend_incoming(request: HttpRequest):
+    raw_since = (request.GET.get("since") or "").strip()
+    since_dt = None
+    if raw_since.isdigit():
+        since_ms = int(raw_since)
+        since_dt = datetime.fromtimestamp(since_ms / 1000.0, tz=timezone.utc)
+    if since_dt is None:
+        since_dt = datetime.fromtimestamp(0, tz=timezone.utc)
+
+    qs = Friendship.objects.filter(addressee=request.user, status=Friendship.Status.PENDING)
+    total = qs.count()
+    new_reqs = (
+        qs.filter(created_at__gt=since_dt)
+        .select_related("requester", "requester__profile")
+        .order_by("created_at")[:20]
+    )
+    events = []
+    for fr in new_reqs:
+        u = fr.requester
+        events.append(
+            {
+                "id": fr.id,
+                "user_id": u.id,
+                "username": u.username,
+                "name": u.get_full_name() or u.username,
+                "ts": int(fr.created_at.timestamp() * 1000),
+            }
+        )
+    return JsonResponse({"ok": True, "count": total, "events": events, "now": int(timezone.now().timestamp() * 1000)})

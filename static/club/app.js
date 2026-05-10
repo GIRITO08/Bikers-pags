@@ -40,6 +40,30 @@ function showToast(message, kind = "success") {
   }, 4200);
 }
 
+function ensureFriendBell() {
+  const right = qs(".topbar__right");
+  if (!right) return null;
+  let bell = qs("[data-friend-bell]", right);
+  if (bell) return bell;
+  bell = document.createElement("a");
+  bell.className = "btn btn--ghost btn--sm notifbell";
+  bell.setAttribute("href", "/feed/");
+  bell.setAttribute("data-friend-bell", "1");
+  bell.innerHTML = `<span class="mi material-symbols-rounded" aria-hidden="true">notifications</span><span class="notifbell__badge" data-friend-bell-badge hidden>0</span>`;
+  right.insertBefore(bell, right.firstChild);
+  return bell;
+}
+
+function setFriendBellCount(count) {
+  const bell = ensureFriendBell();
+  if (!bell) return;
+  const badge = qs("[data-friend-bell-badge]", bell);
+  if (!badge) return;
+  const n = Math.max(0, parseInt(count || 0, 10) || 0);
+  badge.textContent = String(n > 99 ? "99+" : n);
+  badge.hidden = n <= 0;
+}
+
 function qs(sel, root = document) {
   return root.querySelector(sel);
 }
@@ -184,10 +208,16 @@ function initFriendButtons() {
 function initFriendUpdates() {
   if (!qs(".topbar")) return;
   const key = "tm_friend_updates_since";
+  const keyIncoming = "tm_friend_incoming_since";
   let since = parseInt(localStorage.getItem(key) || "0", 10);
+  let sinceIncoming = parseInt(localStorage.getItem(keyIncoming) || "0", 10);
   if (!since) {
     since = Date.now();
     localStorage.setItem(key, String(since));
+  }
+  if (!sinceIncoming) {
+    sinceIncoming = Date.now();
+    localStorage.setItem(keyIncoming, String(sinceIncoming));
   }
 
   async function poll() {
@@ -207,8 +237,30 @@ function initFriendUpdates() {
     } catch {}
   }
 
+  async function pollIncoming() {
+    try {
+      const r = await fetch(`/api/friends/incoming/?since=${encodeURIComponent(String(sinceIncoming))}`);
+      const data = await r.json();
+      if (!data || !data.ok) return;
+      setFriendBellCount(data.count || 0);
+      const events = Array.isArray(data.events) ? data.events : [];
+      events.forEach((e) => {
+        const name = (e && e.name) || "Un rider";
+        showToast(`${name} te envió solicitud`, "success");
+      });
+      const now = typeof data.now === "number" ? data.now : Date.now();
+      const maxEvent = events.reduce((acc, e) => Math.max(acc, (e && e.ts) || 0), 0);
+      sinceIncoming = Math.max(sinceIncoming, now, maxEvent);
+      localStorage.setItem(keyIncoming, String(sinceIncoming));
+    } catch {}
+  }
+
   poll();
-  setInterval(poll, 12000);
+  pollIncoming();
+  setInterval(() => {
+    poll();
+    pollIncoming();
+  }, 12000);
 }
 
 function initCarousel() {

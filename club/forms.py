@@ -202,6 +202,18 @@ class ProfileEditForm(forms.Form):
     last_name = forms.CharField(required=False, label="Apellidos")
     email = forms.EmailField(required=False, label="Correo")
 
+    document_id = forms.CharField(required=False, label="Documento")
+    sex = forms.ChoiceField(required=False, choices=[("", "-")] + list(RiderProfile.Sex.choices), label="Sexo")
+    age = forms.IntegerField(required=False, min_value=0, label="Edad")
+    birthdate = forms.DateField(required=False, widget=forms.DateInput(attrs={"type": "date"}), label="Fecha de nacimiento")
+
+    phone_mobile = forms.CharField(required=False, label="Teléfono móvil")
+    phone_work = forms.CharField(required=False, label="Teléfono trabajo")
+    residence_address_line1 = forms.CharField(required=False, label="Dirección")
+    residence_address_line2 = forms.CharField(required=False, label="Barrio")
+    residence_postal = forms.CharField(required=False, label="Código Postal")
+    residence_country = forms.CharField(required=False, label="País")
+
     profile_photo_url = forms.URLField(required=False, label="Foto de perfil (URL)")
     profile_photo_file = forms.FileField(
         required=False,
@@ -220,6 +232,16 @@ class ProfileEditForm(forms.Form):
     residence_state = forms.CharField(required=False, label="Estado")
     occupation = forms.CharField(required=False, label="Ocupación")
 
+    blood_type = forms.ChoiceField(
+        required=False,
+        choices=[("", "-")] + [(x, x) for x in ["A", "B", "AB", "O", "RH+", "RH-"]],
+        label="Grupo sanguíneo",
+    )
+    allergic = forms.ChoiceField(required=False, choices=[("", "-"), ("1", "Sí"), ("0", "No")], label="¿Es alérgico?")
+    allergy_details = forms.CharField(required=False, label="Alergias (detalle)")
+    moto_model = forms.CharField(required=False, label="Moto")
+    moto_plate = forms.CharField(required=False, label="Placa")
+
     def __init__(self, *args, user: User, **kwargs):
         super().__init__(*args, **kwargs)
         self.user = user
@@ -229,13 +251,38 @@ class ProfileEditForm(forms.Form):
                 "first_name": user.first_name,
                 "last_name": user.last_name,
                 "email": user.email,
+                "document_id": self.profile.document_id,
+                "sex": self.profile.sex,
+                "age": self.profile.age,
+                "birthdate": self.profile.birthdate,
+                "phone_mobile": self.profile.phone_mobile,
+                "phone_work": self.profile.phone_work,
+                "residence_address_line1": self.profile.residence_address_line1,
+                "residence_address_line2": self.profile.residence_address_line2,
                 "profile_photo_url": self.profile.profile_photo_url,
                 "cover_photo_url": getattr(self.profile, "cover_photo_url", ""),
                 "bio": getattr(self.profile, "bio", ""),
                 "residence_city": self.profile.residence_city,
                 "residence_state": self.profile.residence_state,
+                "residence_postal": self.profile.residence_postal,
+                "residence_country": self.profile.residence_country,
                 "occupation": self.profile.occupation,
+                "blood_type": self.profile.blood_type,
+                "allergic": "" if self.profile.allergic is None else ("1" if self.profile.allergic else "0"),
+                "allergy_details": self.profile.allergy_details,
+                "moto_model": self.profile.moto_model,
+                "moto_plate": self.profile.moto_plate,
             }
+
+    @staticmethod
+    def _to_bool(val: str | None) -> bool | None:
+        if val in (None, ""):
+            return None
+        if val == "1":
+            return True
+        if val == "0":
+            return False
+        return None
 
     def clean_email(self):
         email = (self.cleaned_data.get("email") or "").strip().lower()
@@ -248,6 +295,17 @@ class ProfileEditForm(forms.Form):
         self.user.last_name = (self.cleaned_data.get("last_name") or "").strip()
         self.user.email = (self.cleaned_data.get("email") or "").strip().lower()
         self.user.save(update_fields=["first_name", "last_name", "email"])
+
+        self.profile.document_id = (self.cleaned_data.get("document_id") or "").strip()
+        self.profile.sex = (self.cleaned_data.get("sex") or "").strip()
+        self.profile.age = self.cleaned_data.get("age")
+        self.profile.birthdate = self.cleaned_data.get("birthdate")
+        self.profile.phone_mobile = (self.cleaned_data.get("phone_mobile") or "").strip()
+        self.profile.phone_work = (self.cleaned_data.get("phone_work") or "").strip()
+        self.profile.residence_address_line1 = (self.cleaned_data.get("residence_address_line1") or "").strip()
+        self.profile.residence_address_line2 = (self.cleaned_data.get("residence_address_line2") or "").strip()
+        self.profile.residence_postal = (self.cleaned_data.get("residence_postal") or "").strip()
+        self.profile.residence_country = (self.cleaned_data.get("residence_country") or "").strip()
 
         self.profile.profile_photo_url = (self.cleaned_data.get("profile_photo_url") or "").strip()
         self.profile.cover_photo_url = (self.cleaned_data.get("cover_photo_url") or "").strip()
@@ -271,8 +329,23 @@ class ProfileEditForm(forms.Form):
         self.profile.residence_city = (self.cleaned_data.get("residence_city") or "").strip()
         self.profile.residence_state = (self.cleaned_data.get("residence_state") or "").strip()
         self.profile.occupation = (self.cleaned_data.get("occupation") or "").strip()
+        self.profile.blood_type = (self.cleaned_data.get("blood_type") or "").strip()
+        self.profile.allergic = self._to_bool(self.cleaned_data.get("allergic"))
+        self.profile.allergy_details = (self.cleaned_data.get("allergy_details") or "").strip()
+        self.profile.moto_model = (self.cleaned_data.get("moto_model") or "").strip()
+        self.profile.moto_plate = (self.cleaned_data.get("moto_plate") or "").strip()
         self.profile.save(
             update_fields=[
+                "document_id",
+                "sex",
+                "age",
+                "birthdate",
+                "phone_mobile",
+                "phone_work",
+                "residence_address_line1",
+                "residence_address_line2",
+                "residence_postal",
+                "residence_country",
                 "profile_photo_url",
                 "profile_photo_file",
                 "cover_photo_url",
@@ -281,6 +354,11 @@ class ProfileEditForm(forms.Form):
                 "residence_city",
                 "residence_state",
                 "occupation",
+                "blood_type",
+                "allergic",
+                "allergy_details",
+                "moto_model",
+                "moto_plate",
                 "updated_at",
             ]
         )

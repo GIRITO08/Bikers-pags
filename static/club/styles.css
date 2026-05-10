@@ -150,6 +150,8 @@ img{max-width:100%;display:block}
 .topbar__indicator{position:absolute;top:4px;left:4px;height:calc(100% - 8px);border-radius:999px;background:linear-gradient(135deg,rgba(255,106,0,.18),rgba(255,255,255,.03));border:1px solid rgba(255,106,0,.25);box-shadow:0 10px 26px rgba(0,0,0,.35);width:0;transform:translateX(0);transition:transform .35s ease,width .35s ease}
 .topbar__user{display:flex;align-items:center;gap:10px}
 .topbar__name{font-weight:800;color:var(--muted)}
+.notifbell{position:relative}
+.notifbell__badge{position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;padding:0 6px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:rgba(255,106,0,.92);border:1px solid rgba(0,0,0,.35);color:#0b0f16;font-weight:900;font-size:11px;line-height:1}
 
 .search{position:relative}
 .search__input{width:340px;padding:11px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.10);background:rgba(17,24,38,.55);color:var(--text);outline:none}
