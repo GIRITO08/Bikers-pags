@@ -69,6 +69,7 @@
         </div>
         <div class="composer__right">
           <textarea class="composer__input" name="text" rows="3" placeholder="¿Qué quieres compartir?"></textarea>
+          <input class="composer__location" type="text" name="location" placeholder="Agregar ubicación..." maxlength="255" />
           <div class="composer__actions">
             <label class="btn btn--ghost btn--sm" for="postImage">
               <span class="mi material-symbols-rounded" aria-hidden="true">photo_camera</span>Foto
@@ -116,6 +117,9 @@
               <div class="post__meta">
                 <div class="post__author">{{ post.author.get_full_name|default:post.author.username }}</div>
                 <div class="post__time">{{ post.created_at }}</div>
+                {% if post.location %}
+                  <div class="post__location"><span class="mi material-symbols-rounded" aria-hidden="true">location_on</span> {{ post.location }}</div>
+                {% endif %}
               </div>
             </header>
             {% if post.text %}

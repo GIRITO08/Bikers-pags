@@ -426,6 +426,12 @@ class PostCreateForm(forms.Form):
         label="",
         widget=forms.FileInput(attrs={"accept": "image/*"}),
     )
+    location = forms.CharField(
+        required=False,
+        label="",
+        max_length=255,
+        widget=forms.TextInput(attrs={"placeholder": "Agregar ubicación..."}),
+    )
 
     def __init__(self, *args, user: User, request, **kwargs):
         super().__init__(*args, **kwargs)
@@ -442,9 +448,10 @@ class PostCreateForm(forms.Form):
 
     def save(self) -> Post:
         text = (self.cleaned_data.get("text") or "").strip()
+        location = (self.cleaned_data.get("location") or "").strip()
         image_file = self.cleaned_data.get("image_file")
 
-        post = Post.objects.create(author=self.user, text=text)
+        post = Post.objects.create(author=self.user, text=text, location=location)
 
         if image_file:
             if getattr(settings, "USE_LOCAL_MEDIA", False):
