@@ -1,0 +1,116 @@
+{% extends 'club/base.html' %}
+{% block body_class %}page page--info{% endblock %}
+{% block title %}Tesalia Motoclub{% endblock %}
+
+{% block content %}
+<section class="infopage">
+  <a href="{% url 'login' %}" class="infopage__loginbtn" title="Iniciar sesión">
+    <span class="material-symbols-rounded mi">login</span>
+  </a>
+
+  <div class="infopage__carousel">
+    <div class="carousel__track">
+      <div class="carousel__slide is-active" style="background-image:url('https://images.unsplash.com/photo-1526726538690-5cbf956ae2fd?auto=format&fit=crop&w=1920&q=80')">
+        <div class="carousel__overlay"></div>
+        <div class="carousel__content">
+          <div class="carousel__text">
+            <h2 class="carousel__title">{{ club_name }}</h2>
+            <p class="carousel__subtitle">{{ club_tagline }}</p>
+            <p class="carousel__desc">Una comunidad apasionada por las dos ruedas, los viajes y la camaradería sobre la carretera. Más de 200 riders unidos por la pasión de la motocicleta.</p>
+          </div>
+        </div>
+      </div>
+      <div class="carousel__slide" style="background-image:url('https://images.unsplash.com/photo-1502877338535-766e1452684a?auto=format&fit=crop&w=1920&q=80')">
+        <div class="carousel__overlay"></div>
+        <div class="carousel__content">
+          <div class="carousel__text">
+            <h2 class="carousel__title">Viajes Organizados</h2>
+            <p class="carousel__subtitle">Salidas semanales y eventos especiales</p>
+            <p class="carousel__desc">Rutas personalizadas desde paseos urbanos hasta aventuras en la montaña. ¡Únete a nuestra próxima rodada!</p>
+          </div>
+        </div>
+      </div>
+      <div class="carousel__slide" style="background-image:url('https://images.unsplash.com/photo-1525609004556-c46c7d6cf023?auto=format&fit=crop&w=1920&q=80')">
+        <div class="carousel__overlay"></div>
+        <div class="carousel__content">
+          <div class="carousel__text">
+            <h2 class="carousel__title">Comunidad</h2>
+            <p class="carousel__subtitle">Encuentra compañeros de ruta</p>
+            <p class="carousel__desc">Busca riders por nombre o ubicación, agrega amigos y mantente conectado con todos los miembros.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="carousel__controls">
+      <button class="carousel__btn carousel__btn--prev" data-dir="-1"><span class="material-symbols-rounded mi">chevron_left</span></button>
+      <button class="carousel__btn carousel__btn--next" data-dir="1"><span class="material-symbols-rounded mi">chevron_right</span></button>
+    </div>
+    <div class="carousel__dots"></div>
+  </div>
+
+  <div class="infopage__contact">
+    <div class="contact__grid">
+      <div class="contact__item">
+        <span class="material-symbols-rounded mi">location_on</span>
+        <span>Calle Principal #123, Tesalia</span>
+      </div>
+      <div class="contact__item">
+        <span class="material-symbols-rounded mi">email</span>
+        <span>contacto@tesaliamotoclub.com</span>
+      </div>
+      <div class="contact__item">
+        <span class="material-symbols-rounded mi">phone</span>
+        <span>+57 300 123 4567</span>
+      </div>
+      <div class="contact__item">
+        <span class="material-symbols-rounded mi">schedule</span>
+        <span>Lunes a Viernes: 9:00 - 18:00</span>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  window.TesaliaPage = { name: "info" };
+  
+  document.addEventListener('DOMContentLoaded', function() {
+    const track = document.querySelector('.carousel__track');
+    const slides = document.querySelectorAll('.carousel__slide');
+    const dotsContainer = document.querySelector('.carousel__dots');
+    let current = 0;
+    
+    slides.forEach((_, i) => {
+      const dot = document.createElement('button');
+      dot.className = 'carousel__dot' + (i === 0 ? ' is-active' : '');
+      dot.dataset.slide = i;
+      dotsContainer.appendChild(dot);
+    });
+    
+    const dots = document.querySelectorAll('.carousel__dot');
+    
+    function goToSlide(index) {
+      slides[current].classList.remove('is-active');
+      dots[current].classList.remove('is-active');
+      current = index;
+      slides[current].classList.add('is-active');
+      dots[current].classList.add('is-active');
+    }
+    
+    document.querySelector('.carousel__btn--prev').addEventListener('click', () => {
+      goToSlide((current - 1 + slides.length) % slides.length);
+    });
+    
+    document.querySelector('.carousel__btn--next').addEventListener('click', () => {
+      goToSlide((current + 1) % slides.length);
+    });
+    
+    dots.forEach(dot => {
+      dot.addEventListener('click', () => goToSlide(parseInt(dot.dataset.slide)));
+    });
+    
+    setInterval(() => goToSlide((current + 1) % slides.length), 5000);
+  });
+</script>
+{% endblock %}

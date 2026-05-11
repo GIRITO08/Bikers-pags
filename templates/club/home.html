@@ -3,41 +3,41 @@
 {% block title %}Home | Tesalia Motoclub{% endblock %}
 
 {% block content %}
-  <section class="landing">
-    <div class="landing__content">
-      <div class="brand">
-        <div class="brand__mark">TM</div>
-        <div class="brand__text">
-          <h1 class="brand__title">{{ club_name }}</h1>
-          <p class="brand__tagline">{{ club_tagline }}</p>
-        </div>
-      </div>
-
-      <div class="landing__actions">
-        <a class="btn btn--primary" href="{% url 'login' %}">Iniciar sesión</a>
-        <a class="btn btn--ghost" href="{% url 'register' %}">Registrarme</a>
-      </div>
-
-      <div class="landing__cards">
-        <div class="card">
-          <div class="card__title">Buscar riders</div>
-          <div class="card__text">Encuentra a un compañero por usuario/nombre en caso de emergencia.</div>
-        </div>
-        <div class="card">
-          <div class="card__title">Amigos</div>
-          <div class="card__text">Agrega contactos para tenerlos a mano.</div>
-        </div>
-        <div class="card">
-          <div class="card__title">Viajes</div>
-          <div class="card__text">Carrusel de rodadas y fotos del club.</div>
-        </div>
+<section class="landing">
+  <div class="landing__content">
+    <div class="brand">
+      <div class="brand__mark">TM</div>
+      <div class="brand__text">
+        <h1 class="brand__title">{{ club_name }}</h1>
+        <p class="brand__tagline">{{ club_tagline }}</p>
       </div>
     </div>
-  </section>
+
+    <div class="landing__actions">
+      <a class="btn btn--primary" href="{% url 'login' %}">Iniciar sesión</a>
+      <a class="btn btn--ghost" href="{% url 'register' %}">Registrarme</a>
+    </div>
+
+    <div class="landing__cards">
+      <div class="card">
+        <div class="card__title">Buscar riders</div>
+        <div class="card__text">Encuentra a un compañero por usuario/nombre en caso de emergencia.</div>
+      </div>
+      <div class="card">
+        <div class="card__title">Amigos</div>
+        <div class="card__text">Agrega contactos para tenerlos a mano.</div>
+      </div>
+      <div class="card">
+        <div class="card__title">Viajes</div>
+        <div class="card__text">Carrusel de rodadas y fotos del club.</div>
+      </div>
+    </div>
+  </div>
+</section>
 {% endblock %}
 
 {% block scripts %}
-  <script>
-    window.TesaliaPage = { name: "home" };
-  </script>
+<script>
+  window.TesaliaPage = { name: "home" };
+</script>
 {% endblock %}

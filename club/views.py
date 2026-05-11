@@ -18,7 +18,14 @@ from .models import Friendship, Post, PostComment, RiderProfile, Trip, User
 
 
 def home(request: HttpRequest):
-    return redirect("login")
+    return redirect("info")
+
+
+def info_view(request: HttpRequest):
+    return render(request, "club/info.html", {
+        "club_name": "Tesalia Motoclub",
+        "club_tagline": "Pasión sobre dos ruedas",
+    })
 
 
 def login_view(request: HttpRequest):
